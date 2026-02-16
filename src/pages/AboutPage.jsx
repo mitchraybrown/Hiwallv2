@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../supabase'
 import { Card, Btn, Inp, Overlay } from '../components/ui'
+import { syncToHubSpot } from '../lib/hubspot'
 
 export default function AboutPage({ toast }) {
   const [show, setShow] = useState(false)
@@ -18,6 +19,15 @@ export default function AboutPage({ toast }) {
       status: 'new'
     })
     if (error) { toast?.('Error submitting'); return }
+    // Sync to HubSpot (non-blocking)
+    syncToHubSpot({
+      contact_name: f.name,
+      contact_email: f.email,
+      contact_phone: f.phone,
+      company_name: f.org,
+      message: f.message,
+      enquiry_type: 'council'
+    })
     toast?.("Enquiry submitted — we'll be in touch!")
     setShow(false)
     setF({name:'',org:'',email:'',phone:'',message:''})

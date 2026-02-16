@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../supabase'
 import { Btn, Inp, Card, Overlay } from './ui'
 import { fmt } from '../lib/pricing'
+import { syncToHubSpot } from '../lib/hubspot'
 
 export default function EnquiryForm({ wall, onClose, toast }) {
   const [f, sF] = useState({ contact_name:'', contact_email:'', contact_phone:'', company_name:'', campaign_goal:'', budget:'', timeline:'', message:'' })
@@ -24,6 +25,20 @@ export default function EnquiryForm({ wall, onClose, toast }) {
         message: f.message,
       })
       if (error) throw error
+      // Sync to HubSpot (non-blocking)
+      syncToHubSpot({
+        contact_name: f.contact_name,
+        contact_email: f.contact_email,
+        contact_phone: f.contact_phone,
+        company_name: f.company_name,
+        campaign_goal: f.campaign_goal,
+        budget: f.budget,
+        timeline: f.timeline,
+        message: f.message,
+        wall_title: wall.title,
+        wall_location: wall.neighborhood,
+        enquiry_type: 'wall'
+      })
       toast(booked ? 'Interest registered!' : 'Enquiry submitted!')
       onClose()
     } catch (err) {
