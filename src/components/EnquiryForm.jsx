@@ -4,12 +4,12 @@ import { Btn, Inp, Card, Overlay } from './ui'
 import { fmt } from '../lib/pricing'
 
 export default function EnquiryForm({ wall, onClose, toast }) {
-  const [f, sF] = useState({ contact_name:'', contact_email:'', contact_phone:'', company_name:'', campaign_goal:'', budget_range:'', timeline:'', message:'' })
+  const [f, sF] = useState({ contact_name:'', contact_email:'', contact_phone:'', company_name:'', campaign_goal:'', budget:'', timeline:'', message:'' })
   const [sending, setSending] = useState(false)
   const booked = wall.availability_status === 'booked'
 
   const submit = async () => {
-    if (!f.contact_name || !f.contact_email || !f.campaign_goal || !f.budget_range) return
+    if (!f.contact_name || !f.contact_email || !f.campaign_goal || !f.budget) return
     setSending(true)
     try {
       const { error } = await supabase.from('enquiries').insert({
@@ -19,7 +19,7 @@ export default function EnquiryForm({ wall, onClose, toast }) {
         contact_phone: f.contact_phone,
         company_name: f.company_name,
         campaign_goal: f.campaign_goal,
-        budget_range: f.budget_range,
+        budget: f.budget,
         timeline: f.timeline,
         message: f.message,
       })
@@ -51,7 +51,7 @@ export default function EnquiryForm({ wall, onClose, toast }) {
         </div>
         <Inp label="Campaign Goal" required type="textarea" value={f.campaign_goal} onChange={e => sF({...f, campaign_goal: e.target.value})} placeholder="What do you want to achieve?"/>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
-          <Inp label="Budget" required type="select" value={f.budget_range} onChange={e => sF({...f, budget_range: e.target.value})}>
+          <Inp label="Budget" required type="select" value={f.budget} onChange={e => sF({...f, budget: e.target.value})}>
             <option value="">Select</option><option>Under $5k</option><option>$5k-$10k</option><option>$10k-$25k</option><option>$25k-$50k</option><option>$50k+</option>
           </Inp>
           <Inp label="Timeline" value={f.timeline} onChange={e => sF({...f, timeline: e.target.value})} placeholder="e.g. Mar 2026"/>

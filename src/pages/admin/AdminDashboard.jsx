@@ -8,18 +8,18 @@ import { calcPrice, NEIGHBORHOODS, TRAFFIC_LEVELS, CONDITIONS, ORIENTATIONS, DUR
 function AdminNav({ logout }) {
   const loc = useLocation()
   const tabs = [{to:'/admin',l:'Overview',exact:true},{to:'/admin/walls',l:'Walls'},{to:'/admin/enquiries',l:'Enquiries'},{to:'/admin/partners',l:'Partners'}]
-  return <nav style={{background:'var(--ink)',padding:'0 24px',position:'sticky',top:0,zIndex:100}}>
-    <div style={{maxWidth:1200,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',height:56}}>
-      <div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:20}}>👋</span><span style={{fontFamily:'var(--fd)',fontWeight:700,fontSize:17,color:'var(--co)'}}>Hi Wall</span><span style={{fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:5,background:'rgba(255,56,92,.2)',color:'var(--co)',textTransform:'uppercase'}}>Admin</span></div>
-      <div style={{display:'flex',gap:2,flexWrap:'wrap'}}>
+  return <nav style={{background:'var(--ink)',padding:'0 16px',position:'sticky',top:0,zIndex:100}}>
+    <div style={{maxWidth:1200,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',height:56,gap:8}}>
+      <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}><span style={{fontSize:18}}>👋</span><span style={{fontFamily:'var(--fd)',fontWeight:700,fontSize:15,color:'var(--co)'}}>Hi Wall</span><span style={{fontSize:9,fontWeight:600,padding:'2px 6px',borderRadius:5,background:'rgba(255,56,92,.2)',color:'var(--co)',textTransform:'uppercase'}}>Admin</span></div>
+      <div style={{display:'flex',gap:2,flexWrap:'wrap',justifyContent:'center',flex:1}}>
         {tabs.map(t => {
           const active = t.exact ? loc.pathname === t.to : loc.pathname.startsWith(t.to)
-          return <Link key={t.to} to={t.to} style={{padding:'6px 12px',borderRadius:6,textDecoration:'none',fontSize:12,fontWeight:active?600:400,background:active?'rgba(255,255,255,.1)':'transparent',color:active?'#fff':'rgba(255,255,255,.45)'}}>{t.l}</Link>
+          return <Link key={t.to} to={t.to} style={{padding:'5px 10px',borderRadius:6,textDecoration:'none',fontSize:11,fontWeight:active?600:400,background:active?'rgba(255,255,255,.1)':'transparent',color:active?'#fff':'rgba(255,255,255,.45)',whiteSpace:'nowrap'}}>{t.l}</Link>
         })}
       </div>
-      <div style={{display:'flex',gap:8,alignItems:'center'}}>
-        <Link to="/" style={{color:'rgba(255,255,255,.4)',fontSize:11,textDecoration:'none'}}>← Site</Link>
-        <button onClick={logout} style={{background:'none',border:'1px solid rgba(255,255,255,.2)',borderRadius:7,color:'rgba(255,255,255,.5)',padding:'5px 12px',cursor:'pointer',fontSize:11}}>Sign Out</button>
+      <div style={{display:'flex',gap:6,alignItems:'center',flexShrink:0}}>
+        <Link to="/" style={{color:'rgba(255,255,255,.4)',fontSize:10,textDecoration:'none'}}>← Site</Link>
+        <button onClick={logout} style={{background:'none',border:'1px solid rgba(255,255,255,.2)',borderRadius:7,color:'rgba(255,255,255,.5)',padding:'4px 10px',cursor:'pointer',fontSize:10}}>Out</button>
       </div>
     </div>
   </nav>
@@ -196,7 +196,7 @@ function WallForm({ id, toast, onDone }) {
       <Inp label="Title" required value={f.title} onChange={e=>u('title',e.target.value)} placeholder="e.g. Surry Hills Corner"/>
       <Inp label="Address" required value={f.address} onChange={e=>u('address',e.target.value)} placeholder="42 Crown St, Surry Hills"/>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
-        <Inp label="Neighborhood" type="select" value={f.neighborhood} onChange={e=>u('neighborhood',e.target.value)}>{NEIGHBORHOODS.map(n=><option key={n}>{n}</option>)}</Inp>
+        <Inp label="Neighborhood" type="select" value={f.neighborhood} onChange={e=>u('neighborhood',e.target.value)}>{Object.keys(NEIGHBORHOODS).map(n=><option key={n}>{n}</option>)}</Inp>
         <Inp label="Building Type" type="select" value={f.building_type} onChange={e=>u('building_type',e.target.value)}>{BUILDING_TYPES.map(b=><option key={b}>{b}</option>)}</Inp>
       </div>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10}}>
@@ -281,6 +281,15 @@ function WallForm({ id, toast, onDone }) {
       </>}
       {isNew && <p style={{fontSize:12,color:'var(--mu)'}}>Save the wall first, then you can upload images.</p>}
     </Card>
+
+    {!isNew && f.contract_signed && <Card style={{padding:22,marginBottom:16}}>
+      <h3 style={{fontSize:15,fontWeight:600,marginBottom:14}}>📜 Contract</h3>
+      <div style={{padding:'14px 16px',background:'var(--gb)',borderRadius:10,border:'1px solid var(--gn)'}}>
+        <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:6}}><span style={{color:'var(--gn)',fontSize:16}}>✓</span><span style={{fontSize:13,fontWeight:600,color:'var(--gt)'}}>Contract Signed</span></div>
+        <div style={{fontSize:13,color:'var(--gt)',marginBottom:4}}>Signed by: <strong style={{fontFamily:'var(--fd)',fontStyle:'italic'}}>{f.contract_signature}</strong></div>
+        <div style={{fontSize:12,color:'var(--gt)'}}>Date: {f.contract_signed_at ? new Date(f.contract_signed_at).toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—'}</div>
+      </div>
+    </Card>}
 
     <div style={{display:'flex',gap:10}}>
       <Btn onClick={save} disabled={saving} style={{flex:1,justifyContent:'center',padding:14,fontSize:16,opacity:saving?.6:1}}>{saving ? 'Saving...' : (isNew ? 'Create Wall' : 'Save Changes')}</Btn>

@@ -8,6 +8,24 @@ export default function PartnersPage({ toast }) {
   const [show, setShow] = useState(false)
   const [sel, setSel] = useState(null)
   const [f, setF] = useState({ company: '', services: '', portfolio: '', contact: '', description: '', website: '', logo: '' })
+  const [logoUploading, setLogoUploading] = useState(false)
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setLogoUploading(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `partner-logos/${Date.now()}.${ext}`
+      const { error } = await supabase.storage.from('wall-images').upload(path, file, { cacheControl: '3600', upsert: false })
+      if (error) throw error
+      const { data: { publicUrl } } = supabase.storage.from('wall-images').getPublicUrl(path)
+      setF(prev => ({ ...prev, logo: publicUrl }))
+    } catch (err) {
+      toast?.('Logo upload failed: ' + err.message)
+    }
+    setLogoUploading(false)
+  }
 
   useEffect(() => {
     supabase.from('partners').select('*').eq('status', 'approved').order('company_name')
@@ -45,7 +63,20 @@ export default function PartnersPage({ toast }) {
         <Inp label="Brief Description" type="textarea" rows={2} value={f.description} onChange={e => setF({...f, description: e.target.value})} placeholder="What does your company do?"/>
         <Inp label="Portfolio URL" value={f.portfolio} onChange={e => setF({...f, portfolio: e.target.value})} placeholder="https://..."/>
         <Inp label="Website" value={f.website} onChange={e => setF({...f, website: e.target.value})} placeholder="https://..."/>
-        <Inp label="Logo URL (or emoji)" value={f.logo} onChange={e => setF({...f, logo: e.target.value})} placeholder="🎨 or https://..."/>
+        <div style={{marginBottom:15}}>
+          <label style={{display:'block',fontSize:13,fontWeight:600,marginBottom:4}}>Logo</label>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            {f.logo && <div style={{width:40,height:40,borderRadius:8,overflow:'hidden',flexShrink:0,background:'var(--col)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+              {f.logo.startsWith('http') ? <img src={f.logo} alt="" style={{width:40,height:40,objectFit:'cover'}}/> : <span style={{fontSize:20}}>{f.logo}</span>}
+            </div>}
+            <label style={{display:'inline-flex',alignItems:'center',gap:6,padding:'8px 14px',background:'var(--wh)',border:'1.5px solid var(--ln)',borderRadius:10,cursor:'pointer',fontSize:12,fontWeight:600,color:'var(--sl)'}}>
+              <span>{logoUploading ? 'Uploading...' : '📷 Upload Logo'}</span>
+              <input type="file" accept="image/*" onChange={handleLogoUpload} style={{display:'none'}} disabled={logoUploading}/>
+            </label>
+            <span style={{fontSize:11,color:'var(--mu)'}}>or</span>
+            <Inp label="" value={f.logo.startsWith('http') ? '' : f.logo} onChange={e => setF({...f, logo: e.target.value})} placeholder="Type emoji 🎨" style={{marginBottom:0,maxWidth:120}}/>
+          </div>
+        </div>
         <Inp label="Contact Email" required type="email" value={f.contact} onChange={e => setF({...f, contact: e.target.value})} placeholder="hello@company.com"/>
         <div style={{display:'flex',gap:8}}>
           <Btn variant="secondary" onClick={() => setShow(false)} style={{flex:1,justifyContent:'center'}}>Cancel</Btn>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../supabase'
+import { supabase, uploadWallImage } from '../supabase'
 import { Card, Btn, Inp, Toggle } from '../components/ui'
 import {
   calcPrice, fmt, campPrice,
@@ -14,11 +14,13 @@ export default function ListWallPage({ session, toast }) {
   const [done, setDone] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [contractText, setContractText] = useState('')
+  const [uploadedImages, setUploadedImages] = useState([])
+  const [uploading, setUploading] = useState(false)
   const [f, setF] = useState({
     title: '', address: '', neighborhood: 'Surry Hills', buildingType: 'Commercial',
     width: '', height: '', trafficLevel: 'Medium', condition: 'Good',
     orientation: 'North', duration: '6', price: '',
-    description: '', highlights: '', imageUrl: '',
+    description: '', highlights: '',
     accessLevel: 'Ground level (no equipment)', accessNotes: '',
     heritage: { heritageListed: false, councilRestrictions: false, strataApproval: false, colorRestrictions: false, details: '' },
     council: 'City of Sydney',
@@ -28,6 +30,30 @@ export default function ListWallPage({ session, toast }) {
 
   const u = (k, v) => setF(p => ({ ...p, [k]: v }))
   const uh = (k, v) => setF(p => ({ ...p, heritage: { ...p.heritage, [k]: v } }))
+
+  const handlePhotoUpload = async (e) => {
+    const files = Array.from(e.target.files)
+    if (!files.length) return
+    setUploading(true)
+    const tempId = `temp-${Date.now()}`
+    for (const file of files) {
+      try {
+        const ext = file.name.split('.').pop()
+        const path = `${tempId}/${Date.now()}.${ext}`
+        const { error } = await supabase.storage.from('wall-images').upload(path, file, { cacheControl: '3600', upsert: false })
+        if (error) throw error
+        const { data: { publicUrl } } = supabase.storage.from('wall-images').getPublicUrl(path)
+        setUploadedImages(prev => [...prev, { url: publicUrl, path }])
+      } catch (err) {
+        toast?.('Upload failed: ' + err.message)
+      }
+    }
+    setUploading(false)
+  }
+
+  const removePhoto = (index) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index))
+  }
 
   const sqm = f.width && f.height ? Math.round(parseFloat(f.width) * parseFloat(f.height) * 10) / 10 : 0
   const sug = f.width && f.height ? calcPrice({ ...f, width: f.width, height: f.height }) : null
@@ -73,7 +99,7 @@ export default function ListWallPage({ session, toast }) {
         title: f.title, description: f.description, address: f.address,
         neighborhood: f.neighborhood, council: f.council || SUBURB_COUNCIL[f.neighborhood] || '',
         building_type: f.buildingType, width_m: parseFloat(f.width), height_m: parseFloat(f.height),
-        sqm, traffic_level: f.trafficLevel, condition: f.condition,
+        traffic_level: f.trafficLevel, condition: f.condition,
         orientation: f.orientation, duration_months: parseInt(f.duration),
         access_level: f.accessLevel, access_notes: f.accessNotes,
         heritage_listed: f.heritage.heritageListed, council_restrictions: f.heritage.councilRestrictions,
@@ -81,7 +107,7 @@ export default function ListWallPage({ session, toast }) {
         restriction_details: f.heritage.details,
         price_total: parseInt(f.price) || sug?.ownerTotal || 0,
         price_monthly: sug?.ownerMonthly || 0,
-        primary_image_url: f.imageUrl || 'https://images.unsplash.com/photo-1494891848038-7bd202a2afeb?w=800&q=80',
+        primary_image_url: uploadedImages[0]?.url || 'https://images.unsplash.com/photo-1494891848038-7bd202a2afeb?w=800&q=80',
         highlights: f.highlights ? f.highlights.split(',').map(s => s.trim()).filter(Boolean) : [],
         status: 'pending',
         contract_signed: true, contract_signature: f.signature,
@@ -153,10 +179,19 @@ export default function ListWallPage({ session, toast }) {
           <Inp label="Highlights (comma-separated)" value={f.highlights} onChange={e => u('highlights', e.target.value)} placeholder="e.g. Corner position, Café strip, High foot traffic"/>
           <div style={{marginBottom:15}}>
             <label style={{display:'block',fontSize:13,fontWeight:600,marginBottom:4}}>Wall Photos</label>
-            <div style={{border:'1.5px dashed var(--ln)',borderRadius:12,padding:'20px 16px',textAlign:'center',background:'var(--bg)'}}>
-              <Inp label="" value={f.imageUrl} onChange={e => u('imageUrl', e.target.value)} placeholder="Paste an image URL (e.g. https://...)" style={{marginBottom:8}}/>
-              {f.imageUrl && <div style={{marginTop:8}}><img src={f.imageUrl} alt="Preview" style={{maxWidth:'100%',maxHeight:160,borderRadius:10,objectFit:'cover'}} onError={e => { e.target.style.display = 'none' }}/></div>}
-              <p style={{fontSize:11,color:'var(--mu)',marginTop:6}}>Tip: Right-click any image on the web and copy its URL, or use a service like Imgur to upload.</p>
+            <div style={{border:'1.5px dashed var(--ln)',borderRadius:12,padding:'20px 16px',background:'var(--bg)'}}>
+              {uploadedImages.length > 0 && <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
+                {uploadedImages.map((img, i) => <div key={i} style={{position:'relative',width:100,height:100}}>
+                  <img src={img.url} alt="" style={{width:100,height:100,borderRadius:8,objectFit:'cover'}}/>
+                  <button onClick={() => removePhoto(i)} style={{position:'absolute',top:-6,right:-6,width:20,height:20,borderRadius:'50%',background:'var(--rd)',color:'#fff',border:'none',cursor:'pointer',fontSize:11,display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+                  {i === 0 && <span style={{position:'absolute',bottom:4,left:4,background:'var(--co)',color:'#fff',fontSize:9,padding:'1px 5px',borderRadius:4,fontWeight:600}}>Primary</span>}
+                </div>)}
+              </div>}
+              <label style={{display:'inline-flex',alignItems:'center',gap:8,padding:'10px 18px',background:'var(--wh)',border:'1.5px solid var(--ln)',borderRadius:10,cursor:'pointer',fontSize:13,fontWeight:600,color:'var(--sl)'}}>
+                <span>{uploading ? 'Uploading...' : '📷 Choose Photos'}</span>
+                <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} style={{display:'none'}} disabled={uploading}/>
+              </label>
+              <p style={{fontSize:11,color:'var(--mu)',marginTop:8}}>Upload one or more photos of your wall. The first photo will be the primary image.</p>
             </div>
           </div>
         </Card>}
@@ -175,11 +210,11 @@ export default function ListWallPage({ session, toast }) {
         {step === 2 && <>
           <h3 style={{fontSize:16,fontWeight:600,marginBottom:14}}>💰 Pricing Breakdown</h3>
           <Card style={{padding:20,marginBottom:14}}>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:14}}>
-              <div style={{padding:'14px 16px',background:'var(--gb)',borderRadius:12,border:'1px solid var(--gn)'}}><div style={{fontSize:11,color:'var(--gt)',fontWeight:600,marginBottom:2}}>Your Earnings</div><div style={{fontFamily:'var(--fd)',fontSize:24,fontWeight:700,color:'var(--gt)'}}>{sug ? fmt(sug.ownerTotal) : '—'}</div><div style={{fontSize:12,color:'var(--gt)'}}>({sug ? fmt(sug.ownerMonthly) : '—'}/mo for {f.duration}mo)</div></div>
-              <div style={{padding:'14px 16px',background:'var(--col)',borderRadius:12,border:'1px solid var(--co)'}}><div style={{fontSize:11,color:'var(--co)',fontWeight:600,marginBottom:2}}>Campaign Price (to brand)</div><div style={{fontFamily:'var(--fd)',fontSize:24,fontWeight:700,color:'var(--co)'}}>{sug ? fmt(sug.campaignTotal) : '—'}</div><div style={{fontSize:12,color:'var(--co)'}}>({sug ? fmt(sug.campaignMonthly) : '—'}/mo for {f.duration}mo)</div></div>
+            <div style={{padding:'18px 20px',background:'var(--gb)',borderRadius:12,border:'1px solid var(--gn)',marginBottom:14}}>
+              <div style={{fontSize:11,color:'var(--gt)',fontWeight:600,marginBottom:2}}>Your Estimated Earnings</div>
+              <div style={{fontFamily:'var(--fd)',fontSize:28,fontWeight:700,color:'var(--gt)'}}>{sug ? fmt(sug.ownerTotal) : '—'}</div>
+              <div style={{fontSize:13,color:'var(--gt)',marginTop:2}}>{sug ? fmt(sug.ownerMonthly) : '—'}/mo for {f.duration} months</div>
             </div>
-            <div style={{padding:'10px 14px',background:'var(--bg)',borderRadius:10,display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:13}}><span style={{color:'var(--sl)'}}>Hi Wall Fee ({sug ? sug.hwFeePercent : 25}%)</span><strong>{sug ? fmt(sug.hwFeeTotal) : '—'}</strong></div>
           </Card>
           <Card style={{padding:18,marginBottom:14}}>
             <h4 style={{fontSize:13,fontWeight:600,marginBottom:10}}>Price Factors</h4>
@@ -187,7 +222,7 @@ export default function ListWallPage({ session, toast }) {
           </Card>
           <Card style={{padding:18}}>
             <Inp label="Override Your Price (optional — or accept suggested)" type="number" value={f.price} onChange={e => u('price', e.target.value)} placeholder={sug ? String(sug.ownerTotal) : ''}/>
-            <p style={{fontSize:11,color:'var(--mu)'}}>This sets your owner earnings. The Hi Wall fee will be added on top.</p>
+            <p style={{fontSize:11,color:'var(--mu)'}}>Set your preferred earnings amount, or leave blank to accept the suggested price.</p>
           </Card>
           <div style={{marginTop:16,padding:'14px 18px',background:'var(--gb)',borderRadius:12,border:'1px solid var(--gn)'}}>
             <div style={{fontSize:13,fontWeight:600,color:'var(--gt)',marginBottom:4}}>✓ Looking good!</div>
@@ -235,11 +270,10 @@ export default function ListWallPage({ session, toast }) {
           <div style={{fontSize:12,color:'var(--mu)',marginBottom:10}}>{f.neighborhood} • {sqm}sqm • {f.duration}mo</div>
           {sug && <>
             <div style={{padding:'10px 0',borderTop:'1px solid var(--ln)',marginBottom:6}}>
-              <div style={{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:4}}><span>Owner Earnings</span><strong style={{color:'var(--gn)'}}>{fmt(parseInt(f.price) || sug.ownerTotal)}</strong></div>
-              <div style={{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:4}}><span>Hi Wall Fee ({sug.hwFeePercent}%)</span><strong>{fmt(Math.round((parseInt(f.price) || sug.ownerTotal) * sug.hwFeePercent / 100 / 10) * 10)}</strong></div>
+              <div style={{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:4}}><span>Your Earnings</span><strong style={{color:'var(--gn)'}}>{fmt(parseInt(f.price) || sug.ownerTotal)}</strong></div>
+              <div style={{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:4}}><span>Monthly</span><strong style={{color:'var(--gn)'}}>{fmt(Math.round((parseInt(f.price) || sug.ownerTotal) / parseInt(f.duration)))}</strong></div>
               <div style={{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:4}}><span>Duration</span><strong>{f.duration} months</strong></div>
             </div>
-            <div style={{display:'flex',justifyContent:'space-between',fontSize:14,fontWeight:700,paddingTop:8,borderTop:'1px solid var(--ln)'}}><span>Campaign Total</span><span style={{color:'var(--co)'}}>{fmt((parseInt(f.price) || sug.ownerTotal) + Math.round((parseInt(f.price) || sug.ownerTotal) * sug.hwFeePercent / 100 / 10) * 10)}</span></div>
           </>}
         </Card>
       </div>}
