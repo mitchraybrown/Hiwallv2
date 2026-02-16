@@ -20,9 +20,28 @@ export default function AddressAutocomplete({ value, onChange }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
+  const extractSuburb = (feature) => {
+    // Mapbox context contains locality (suburb), place (city), etc.
+    const ctx = feature.context || []
+    // Try locality first (most specific — this is the suburb)
+    const locality = ctx.find(c => c.id?.startsWith('locality'))
+    if (locality) return locality.text
+    // Try neighborhood
+    const neighborhood = ctx.find(c => c.id?.startsWith('neighborhood'))
+    if (neighborhood) return neighborhood.text
+    // Try place
+    const place = ctx.find(c => c.id?.startsWith('place'))
+    if (place) return place.text
+    // Fallback: try to extract from place_name
+    const parts = feature.place_name?.split(',').map(s => s.trim()) || []
+    // Usually format: "123 Street, Suburb, State Postcode, Country"
+    if (parts.length >= 2) return parts[1]
+    return null
+  }
+
   const search = (q) => {
     setQuery(q)
-    onChange(q, null, null) // update parent text immediately
+    onChange(q, null, null, null) // update parent text immediately
     clearTimeout(timerRef.current)
     if (q.length < 3) { setResults([]); setOpen(false); return }
     timerRef.current = setTimeout(async () => {
@@ -37,7 +56,8 @@ export default function AddressAutocomplete({ value, onChange }) {
           setResults(data.features.map(f => ({
             text: f.place_name,
             lat: f.center[1],
-            lng: f.center[0]
+            lng: f.center[0],
+            suburb: extractSuburb(f)
           })))
           setOpen(true)
         }
@@ -51,7 +71,7 @@ export default function AddressAutocomplete({ value, onChange }) {
   const select = (r) => {
     setQuery(r.text)
     setOpen(false)
-    onChange(r.text, r.lat, r.lng)
+    onChange(r.text, r.lat, r.lng, r.suburb)
   }
 
   return <div ref={wrapRef} style={{ position: 'relative', marginBottom: 15 }}>

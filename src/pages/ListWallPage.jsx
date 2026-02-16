@@ -156,7 +156,19 @@ export default function ListWallPage({ session, toast }) {
         {step === 0 && <Card style={{padding:22}}>
           <h3 style={{fontSize:16,fontWeight:600,marginBottom:14}}>📍 Wall Details</h3>
           <Inp label="Wall Title" required value={f.title} onChange={e => u('title', e.target.value)} placeholder="e.g. Surry Hills Corner Wall"/>
-          <AddressAutocomplete value={f.address} onChange={(addr, lat, lng) => { u('address', addr); if (lat) u('latitude', lat); if (lng) u('longitude', lng); }} />
+          <AddressAutocomplete value={f.address} onChange={(addr, lat, lng, suburb) => {
+            u('address', addr)
+            if (lat) u('latitude', lat)
+            if (lng) u('longitude', lng)
+            if (suburb) {
+              // Match suburb to our known list
+              const match = Object.keys(NEIGHBORHOODS).find(n => n.toLowerCase() === suburb.toLowerCase())
+              if (match) {
+                u('neighborhood', match)
+                if (SUBURB_COUNCIL[match]) u('council', SUBURB_COUNCIL[match])
+              }
+            }
+          }} />
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
             <Inp label="Neighbourhood" required type="select" value={f.neighborhood} onChange={e => { u('neighborhood', e.target.value); u('council', SUBURB_COUNCIL[e.target.value] || '') }}>
               {Object.keys(NEIGHBORHOODS).map(n => <option key={n}>{n}</option>)}

@@ -195,7 +195,15 @@ function WallForm({ id, toast, onDone }) {
     <Card style={{padding:22,marginBottom:16}}>
       <h3 style={{fontSize:15,fontWeight:600,marginBottom:14}}>Basic Info</h3>
       <Inp label="Title" required value={f.title} onChange={e=>u('title',e.target.value)} placeholder="e.g. Surry Hills Corner"/>
-      <AddressAutocomplete value={f.address} onChange={(addr, lat, lng) => { u('address', addr); if (lat) u('latitude', String(lat)); if (lng) u('longitude', String(lng)); }} />
+      <AddressAutocomplete value={f.address} onChange={(addr, lat, lng, suburb) => {
+        u('address', addr)
+        if (lat) u('latitude', String(lat))
+        if (lng) u('longitude', String(lng))
+        if (suburb) {
+          const match = Object.keys(NEIGHBORHOODS).find(n => n.toLowerCase() === suburb.toLowerCase())
+          if (match) u('neighborhood', match)
+        }
+      }} />
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
         <Inp label="Neighborhood" type="select" value={f.neighborhood} onChange={e=>u('neighborhood',e.target.value)}>{Object.keys(NEIGHBORHOODS).map(n=><option key={n}>{n}</option>)}</Inp>
         <Inp label="Building Type" type="select" value={f.building_type} onChange={e=>u('building_type',e.target.value)}>{BUILDING_TYPES.map(b=><option key={b}>{b}</option>)}</Inp>
