@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase, uploadWallImage } from '../supabase'
 import { Card, Btn, Inp, Toggle } from '../components/ui'
+import AddressAutocomplete from '../components/AddressAutocomplete'
 import {
   calcPrice, fmt, campPrice,
   NEIGHBORHOODS, TRAFFIC_LEVELS, CONDITIONS, ORIENTATIONS, DURATIONS,
@@ -21,6 +22,7 @@ export default function ListWallPage({ session, toast }) {
     width: '', height: '', trafficLevel: 'Medium', condition: 'Good',
     orientation: 'North', duration: '6', price: '',
     description: '', highlights: '',
+    latitude: null, longitude: null,
     accessLevel: 'Ground level (no equipment)', accessNotes: '',
     heritage: { heritageListed: false, councilRestrictions: false, strataApproval: false, colorRestrictions: false, details: '' },
     council: 'City of Sydney',
@@ -112,7 +114,9 @@ export default function ListWallPage({ session, toast }) {
         status: 'pending',
         contract_signed: true, contract_signature: f.signature,
         contract_signed_at: new Date().toISOString(),
-        owner_id: userId
+        owner_id: userId,
+        latitude: f.latitude || null,
+        longitude: f.longitude || null
       })
       if (error) { toast?.('Error: ' + error.message); setSubmitting(false); return }
       // Create owner profile stub
@@ -152,7 +156,7 @@ export default function ListWallPage({ session, toast }) {
         {step === 0 && <Card style={{padding:22}}>
           <h3 style={{fontSize:16,fontWeight:600,marginBottom:14}}>📍 Wall Details</h3>
           <Inp label="Wall Title" required value={f.title} onChange={e => u('title', e.target.value)} placeholder="e.g. Surry Hills Corner Wall"/>
-          <Inp label="Address" required value={f.address} onChange={e => u('address', e.target.value)} placeholder="Street address"/>
+          <AddressAutocomplete value={f.address} onChange={(addr, lat, lng) => { u('address', addr); if (lat) u('latitude', lat); if (lng) u('longitude', lng); }} />
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
             <Inp label="Neighbourhood" required type="select" value={f.neighborhood} onChange={e => { u('neighborhood', e.target.value); u('council', SUBURB_COUNCIL[e.target.value] || '') }}>
               {Object.keys(NEIGHBORHOODS).map(n => <option key={n}>{n}</option>)}

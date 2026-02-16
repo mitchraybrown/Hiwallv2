@@ -83,7 +83,7 @@ function Hero() {
     {/* Dark overlay for text readability */}
     <div style={{position:hasImages ? 'absolute' : 'relative',inset:0,zIndex:1,
       background:hasImages
-        ? 'linear-gradient(135deg,rgba(26,26,46,.85),rgba(45,43,85,.75),rgba(59,38,103,.7))'
+        ? 'linear-gradient(135deg,rgba(26,26,46,.7),rgba(45,43,85,.55),rgba(59,38,103,.5))'
         : 'linear-gradient(135deg,#1A1A2E,#2D2B55,#3B2667)',
       padding:'clamp(32px,6vw,52px) 16px clamp(36px,7vw,58px)'
     }}>
@@ -94,10 +94,6 @@ function Hero() {
           <h1 style={{fontFamily:'var(--fd)',fontSize:'clamp(26px,4vw,42px)',fontWeight:700,color:'#fff',lineHeight:1.1,marginBottom:10,textShadow:hasImages?'0 2px 20px rgba(0,0,0,.3)':'none'}}>Turn blank walls into<br/><span style={{color:'var(--co)'}}>bold statements.</span></h1>
           <p style={{fontSize:14,color:'rgba(255,255,255,.65)',lineHeight:1.6,maxWidth:400,textShadow:hasImages?'0 1px 8px rgba(0,0,0,.3)':'none'}}>Verified wall inventory. Brand-quality murals. Delivered by approved partners.</p>
         </div>
-        {/* Image indicator dots */}
-        {images.length > 1 && <div style={{display:'flex',gap:6,marginTop:20}}>
-          {images.map((_, i) => <button key={i} onClick={() => setIdx(i)} style={{width:i===idx?24:8,height:8,borderRadius:4,background:i===idx?'var(--co)':'rgba(255,255,255,.35)',border:'none',cursor:'pointer',transition:'all .3s',padding:0}}/>)}
-        </div>}
       </div>
     </div>
   </section>

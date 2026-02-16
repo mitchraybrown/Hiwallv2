@@ -3,6 +3,7 @@ import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom'
 import { supabase, uploadWallImage } from '../../supabase'
 import { Card, Btn, Inp, Badge, Spinner, Overlay } from '../../components/ui'
 import { calcPrice, NEIGHBORHOODS, TRAFFIC_LEVELS, CONDITIONS, ORIENTATIONS, DURATIONS, ACCESS_OPTS, BUILDING_TYPES, fmt } from '../../lib/pricing'
+import AddressAutocomplete from '../../components/AddressAutocomplete'
 
 // ── Admin Nav ────────────────────────────────────────────────────────────
 function AdminNav({ logout }) {
@@ -194,7 +195,7 @@ function WallForm({ id, toast, onDone }) {
     <Card style={{padding:22,marginBottom:16}}>
       <h3 style={{fontSize:15,fontWeight:600,marginBottom:14}}>Basic Info</h3>
       <Inp label="Title" required value={f.title} onChange={e=>u('title',e.target.value)} placeholder="e.g. Surry Hills Corner"/>
-      <Inp label="Address" required value={f.address} onChange={e=>u('address',e.target.value)} placeholder="42 Crown St, Surry Hills"/>
+      <AddressAutocomplete value={f.address} onChange={(addr, lat, lng) => { u('address', addr); if (lat) u('latitude', String(lat)); if (lng) u('longitude', String(lng)); }} />
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
         <Inp label="Neighborhood" type="select" value={f.neighborhood} onChange={e=>u('neighborhood',e.target.value)}>{Object.keys(NEIGHBORHOODS).map(n=><option key={n}>{n}</option>)}</Inp>
         <Inp label="Building Type" type="select" value={f.building_type} onChange={e=>u('building_type',e.target.value)}>{BUILDING_TYPES.map(b=><option key={b}>{b}</option>)}</Inp>
@@ -443,7 +444,7 @@ function HeroAdmin({ toast }) {
 
   if (loading) return <Spinner />
 
-  return <div style={{maxWidth:800,margin:'0 auto',padding:'28px 24px'}}>
+  return <div style={{maxWidth:800,margin:'0 auto',padding:'28px 24px',overflow:'hidden'}}>
     <h1 className="au" style={{fontFamily:'var(--fd)',fontSize:24,fontWeight:700,marginBottom:6}}>Hero Images</h1>
     <p style={{fontSize:13,color:'var(--mu)',marginBottom:20}}>These images rotate on the homepage hero banner. Upload photos of impressive wall murals and campaigns.</p>
 
@@ -455,21 +456,20 @@ function HeroAdmin({ toast }) {
           <input type="file" accept="image/*" multiple onChange={handleUpload} style={{display:'none'}} disabled={uploading}/>
         </label>
         <span style={{fontSize:12,color:'var(--mu)'}}>or</span>
-        <div style={{display:'flex',gap:6,flex:1,minWidth:200}}>
-          <input value={urlInput} onChange={e => setUrlInput(e.target.value)} placeholder="Paste image URL..." style={{flex:1,padding:'9px 12px',border:'1.5px solid var(--ln)',borderRadius:10,fontSize:13,outline:'none'}}/>
-          <Btn variant="secondary" onClick={addUrl} style={{whiteSpace:'nowrap'}}>Add URL</Btn>
+        <div style={{display:'flex',gap:6,flex:'1 1 200px',minWidth:0}}>
+          <input value={urlInput} onChange={e => setUrlInput(e.target.value)} placeholder="Paste image URL..." style={{flex:1,padding:'9px 12px',border:'1.5px solid var(--ln)',borderRadius:10,fontSize:13,outline:'none',minWidth:0}}/>
+          <Btn variant="secondary" onClick={addUrl} style={{whiteSpace:'nowrap',flexShrink:0}}>Add URL</Btn>
         </div>
       </div>
     </Card>
 
     {images.length === 0 ? <Card style={{padding:36,textAlign:'center'}}><p style={{color:'var(--mu)'}}>No hero images yet. The homepage will use a gradient background until you add some.</p></Card>
     : <div style={{display:'grid',gap:12}}>
-      {images.map((img, idx) => <Card key={img.id} style={{padding:14,display:'flex',gap:14,alignItems:'center',opacity:img.active ? 1 : 0.5}}>
-        <img src={img.image_url} alt="" style={{width:120,height:68,borderRadius:8,objectFit:'cover',flexShrink:0}}/>
-        <div style={{flex:1,minWidth:0}}>
+      {images.map((img, idx) => <Card key={img.id} style={{padding:14,display:'flex',gap:14,alignItems:'center',opacity:img.active ? 1 : 0.5,overflow:'hidden'}}>
+        <img src={img.image_url} alt="" style={{width:100,height:60,borderRadius:8,objectFit:'cover',flexShrink:0}}/>
+        <div style={{flex:1,minWidth:0,overflow:'hidden'}}>
           <div style={{fontSize:13,fontWeight:600,marginBottom:2}}>Image {idx + 1}</div>
-          <div style={{fontSize:11,color:'var(--mu)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{img.image_url}</div>
-          <div style={{fontSize:11,color:img.active ? 'var(--gn)' : 'var(--mu)',marginTop:2}}>{img.active ? '● Active' : '○ Inactive'}</div>
+          <div style={{fontSize:11,color:img.active ? 'var(--gn)' : 'var(--mu)'}}>{img.active ? '● Active' : '○ Inactive'}</div>
         </div>
         <div style={{display:'flex',gap:4,flexShrink:0}}>
           {idx > 0 && <button onClick={() => moveUp(idx)} style={{padding:'4px 8px',borderRadius:6,border:'1px solid var(--ln)',background:'var(--wh)',cursor:'pointer',fontSize:11}}>↑</button>}
