@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
 import { Card, Btn, Overlay, Badge, Spinner } from '../components/ui'
 import EnquiryForm from '../components/EnquiryForm'
+import MapboxMap from '../components/MapboxMap'
 import { fmt, campPrice, TRAFFIC_LEVELS, COORDS, COUNCILS, SUBURB_COUNCIL } from '../lib/pricing'
 
 // ── Wall Card ────────────────────────────────────────────────────────────
@@ -56,43 +57,52 @@ function HowItWorks() {
 
 // ── Hero ─────────────────────────────────────────────────────────────────
 function Hero() {
-  return <section style={{background:'linear-gradient(135deg,#1A1A2E,#2D2B55,#3B2667)',padding:'clamp(32px,6vw,52px) 16px clamp(36px,7vw,58px)',position:'relative',overflow:'hidden'}}>
-    <div style={{position:'absolute',top:-80,right:-80,width:350,height:350,borderRadius:'50%',background:'rgba(255,56,92,.08)',filter:'blur(70px)'}}/>
-    <div style={{maxWidth:1200,margin:'0 auto',position:'relative',zIndex:1}}><div className="au" style={{maxWidth:520}}>
-      <div style={{display:'inline-flex',alignItems:'center',gap:7,background:'rgba(255,56,92,.15)',padding:'4px 13px',borderRadius:20,marginBottom:14}}><span style={{fontSize:12}}>🇦🇺</span><span style={{color:'var(--co)',fontSize:11,fontWeight:600}}>Sydney's Wall Marketplace</span></div>
-      <h1 style={{fontFamily:'var(--fd)',fontSize:'clamp(26px,4vw,42px)',fontWeight:700,color:'#fff',lineHeight:1.1,marginBottom:10}}>Turn blank walls into<br/><span style={{color:'var(--co)'}}>bold statements.</span></h1>
-      <p style={{fontSize:14,color:'rgba(255,255,255,.55)',lineHeight:1.6,maxWidth:400}}>Verified wall inventory. Brand-quality murals. Delivered by approved partners.</p>
-    </div></div>
+  const [images, setImages] = useState([])
+  const [idx, setIdx] = useState(0)
+
+  useEffect(() => {
+    supabase.from('hero_images').select('image_url').eq('active', true).order('display_order')
+      .then(({ data }) => setImages(data?.map(d => d.image_url) || []))
+  }, [])
+
+  useEffect(() => {
+    if (images.length < 2) return
+    const timer = setInterval(() => setIdx(i => (i + 1) % images.length), 6000)
+    return () => clearInterval(timer)
+  }, [images])
+
+  const hasImages = images.length > 0
+
+  return <section style={{position:'relative',overflow:'hidden',minHeight:hasImages ? 'clamp(280px,40vw,420px)' : 'auto'}}>
+    {/* Background images with crossfade */}
+    {hasImages && images.map((url, i) => <div key={i} style={{
+      position:'absolute',inset:0,
+      backgroundImage:`url(${url})`,backgroundSize:'cover',backgroundPosition:'center',
+      opacity:i === idx ? 1 : 0,transition:'opacity 1.5s ease-in-out',zIndex:0
+    }}/>)}
+    {/* Dark overlay for text readability */}
+    <div style={{position:hasImages ? 'absolute' : 'relative',inset:0,zIndex:1,
+      background:hasImages
+        ? 'linear-gradient(135deg,rgba(26,26,46,.85),rgba(45,43,85,.75),rgba(59,38,103,.7))'
+        : 'linear-gradient(135deg,#1A1A2E,#2D2B55,#3B2667)',
+      padding:'clamp(32px,6vw,52px) 16px clamp(36px,7vw,58px)'
+    }}>
+      <div style={{position:'absolute',top:-80,right:-80,width:350,height:350,borderRadius:'50%',background:'rgba(255,56,92,.08)',filter:'blur(70px)'}}/>
+      <div style={{maxWidth:1200,margin:'0 auto',position:'relative',zIndex:2}}>
+        <div className="au" style={{maxWidth:520}}>
+          <div style={{display:'inline-flex',alignItems:'center',gap:7,background:'rgba(255,56,92,.15)',padding:'4px 13px',borderRadius:20,marginBottom:14,backdropFilter:'blur(8px)'}}><span style={{fontSize:12}}>🇦🇺</span><span style={{color:'var(--co)',fontSize:11,fontWeight:600}}>Sydney's Wall Marketplace</span></div>
+          <h1 style={{fontFamily:'var(--fd)',fontSize:'clamp(26px,4vw,42px)',fontWeight:700,color:'#fff',lineHeight:1.1,marginBottom:10,textShadow:hasImages?'0 2px 20px rgba(0,0,0,.3)':'none'}}>Turn blank walls into<br/><span style={{color:'var(--co)'}}>bold statements.</span></h1>
+          <p style={{fontSize:14,color:'rgba(255,255,255,.65)',lineHeight:1.6,maxWidth:400,textShadow:hasImages?'0 1px 8px rgba(0,0,0,.3)':'none'}}>Verified wall inventory. Brand-quality murals. Delivered by approved partners.</p>
+        </div>
+        {/* Image indicator dots */}
+        {images.length > 1 && <div style={{display:'flex',gap:6,marginTop:20}}>
+          {images.map((_, i) => <button key={i} onClick={() => setIdx(i)} style={{width:i===idx?24:8,height:8,borderRadius:4,background:i===idx?'var(--co)':'rgba(255,255,255,.35)',border:'none',cursor:'pointer',transition:'all .3s',padding:0}}/>)}
+        </div>}
+      </div>
+    </div>
   </section>
 }
 
-// ── Sydney Map (SVG) ─────────────────────────────────────────────────────
-function SydneyMap({ walls, onSelect, hoveredId, onHover }) {
-  const bounds = {minLat:-33.92,maxLat:-33.79,minLng:151.14,maxLng:151.30}
-  const W=600, H=500
-  const project = (lat,lng) => ({x:((lng-bounds.minLng)/(bounds.maxLng-bounds.minLng))*W,y:((bounds.maxLat-lat)/(bounds.maxLat-bounds.minLat))*H})
-  const suburbs = Object.entries(COORDS).filter(([n])=>n!=='Other').map(([name,{lat,lng}])=>{const p=project(lat,lng);return{name,...p}})
-  const pins = walls.map(w => {const c=COORDS[w.neighborhood]||COORDS.Other;const idx=walls.filter(x=>x.neighborhood===w.neighborhood).indexOf(w);const p=project(c.lat,c.lng);return{...w,px:p.x+(idx%3-1)*12,py:p.y+Math.floor(idx/3)*12,booked:w.availability_status==='booked'}})
-
-  return <div style={{width:'100%',height:'100%',background:'#F0F4F8',borderRadius:12,overflow:'hidden',position:'relative'}}>
-    <div style={{position:'absolute',bottom:12,left:12,zIndex:10,background:'rgba(255,255,255,.92)',borderRadius:8,padding:'8px 12px',fontSize:11,display:'flex',gap:12}}>
-      <span style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:10,height:10,borderRadius:'50%',background:'var(--co)'}}/>Available</span>
-      <span style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:10,height:10,borderRadius:'50%',background:'var(--bl)'}}/>Booked</span>
-    </div>
-    <svg width="100%" height="100%" viewBox={`0 0 ${W} ${H}`}>
-      <defs><linearGradient id="water" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#C8E0F4"/><stop offset="100%" stopColor="#B4D4ED"/></linearGradient></defs>
-      <rect width={W} height={H} fill="url(#water)"/>
-      <path d={`M0,0 L${W*.15},0 L${W*.15},${H*.3} L${W*.35},${H*.15} L${W*.55},${H*.12} L${W*.65},${H*.22} L${W*.58},${H*.35} L${W*.62},${H*.42} L${W*.55},${H*.5} L${W*.7},${H*.55} L${W*.72},${H*.7} L${W*.6},${H*.85} L${W*.45},${H} L0,${H} Z`} fill="#E8EDF2" stroke="#D1D9E2" strokeWidth="1"/>
-      {suburbs.map(s=><text key={s.name} x={s.x} y={s.y-14} textAnchor="middle" fontSize="9" fill="#8E99A8" fontFamily="var(--f)" fontWeight="500" style={{pointerEvents:'none'}}>{s.name}</text>)}
-      {pins.map(p => {const isH=hoveredId===p.id;const col=p.booked?'var(--bl)':'var(--co)';return <g key={p.id} onClick={e=>{e.stopPropagation();onSelect(p)}} onMouseEnter={()=>onHover(p.id)} onMouseLeave={()=>onHover(null)} style={{cursor:'pointer'}}>
-        <ellipse cx={p.px} cy={p.py+16} rx={isH?8:6} ry={isH?4:3} fill="rgba(0,0,0,.15)"/>
-        <path d={`M${p.px},${p.py+12} C${p.px},${p.py+12} ${p.px-10},${p.py-2} ${p.px-10},${p.py-6} C${p.px-10},${p.py-12} ${p.px-6},${p.py-18} ${p.px},${p.py-18} C${p.px+6},${p.py-18} ${p.px+10},${p.py-12} ${p.px+10},${p.py-6} C${p.px+10},${p.py-2} ${p.px},${p.py+12} ${p.px},${p.py+12}`} fill={col} stroke="#fff" strokeWidth="2" style={{transform:isH?'scale(1.2)':'scale(1)',transformOrigin:`${p.px}px ${p.py}px`,transition:'transform .15s'}}/>
-        <rect x={p.px-22} y={p.py-34} width={44} height={18} rx={9} fill={isH?'var(--ink)':col} stroke="#fff" strokeWidth="1.5"/>
-        <text x={p.px} y={p.py-22} textAnchor="middle" fontSize="9" fontWeight="700" fill="#fff" fontFamily="var(--f)" style={{pointerEvents:'none'}}>{fmt(p.price_total).replace('A','')}</text>
-      </g>})}
-    </svg>
-  </div>
-}
 
 // ── Browse Page (Main) ───────────────────────────────────────────────────
 export default function BrowsePage({ toast }) {
@@ -163,10 +173,10 @@ export default function BrowsePage({ toast }) {
               </div>
             </Card>)}
           </div>
-          <div style={{position:'sticky',top:74,height:'calc(100vh - 180px)',borderRadius:14,overflow:'hidden',border:'1px solid var(--ln)'}}><SydneyMap walls={list} onSelect={sSel} hoveredId={hov} onHover={sHov}/></div>
+          <div style={{position:'sticky',top:74,height:'calc(100vh - 180px)',borderRadius:14,overflow:'hidden',border:'1px solid var(--ln)'}}><MapboxMap walls={list} onSelect={sSel} hoveredId={hov} onHover={sHov}/></div>
         </div>
       ) : activeView==='map' ? (
-        <div style={{height:isMob?'calc(100vh - 260px)':'calc(100vh - 240px)',borderRadius:14,overflow:'hidden',border:'1px solid var(--ln)'}}><SydneyMap walls={list} onSelect={sSel} hoveredId={hov} onHover={sHov}/></div>
+        <div style={{height:isMob?'calc(100vh - 260px)':'calc(100vh - 240px)',borderRadius:14,overflow:'hidden',border:'1px solid var(--ln)'}}><MapboxMap walls={list} onSelect={sSel} hoveredId={hov} onHover={sHov}/></div>
       ) : (
         <div style={{display:'grid',gridTemplateColumns:isMob?'1fr':'repeat(auto-fill,minmax(260px,1fr))',gap:isMob?12:16}}>{list.map(w=><WallCard key={w.id} wall={w} onClick={()=>sSel(w)}/>)}</div>
       )}

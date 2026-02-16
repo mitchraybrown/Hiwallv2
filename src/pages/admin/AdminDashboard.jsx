@@ -7,7 +7,7 @@ import { calcPrice, NEIGHBORHOODS, TRAFFIC_LEVELS, CONDITIONS, ORIENTATIONS, DUR
 // ── Admin Nav ────────────────────────────────────────────────────────────
 function AdminNav({ logout }) {
   const loc = useLocation()
-  const tabs = [{to:'/admin',l:'Overview',exact:true},{to:'/admin/walls',l:'Walls'},{to:'/admin/enquiries',l:'Enquiries'},{to:'/admin/partners',l:'Partners'}]
+  const tabs = [{to:'/admin',l:'Overview',exact:true},{to:'/admin/walls',l:'Walls'},{to:'/admin/enquiries',l:'Enquiries'},{to:'/admin/partners',l:'Partners'},{to:'/admin/hero',l:'Hero'}]
   return <nav style={{background:'var(--ink)',padding:'0 16px',position:'sticky',top:0,zIndex:100}}>
     <div style={{maxWidth:1200,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',height:56,gap:8}}>
       <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}><span style={{fontSize:18}}>👋</span><span style={{fontFamily:'var(--fd)',fontWeight:700,fontSize:15,color:'var(--co)'}}>Hi Wall</span><span style={{fontSize:9,fontWeight:600,padding:'2px 6px',borderRadius:5,background:'rgba(255,56,92,.2)',color:'var(--co)',textTransform:'uppercase'}}>Admin</span></div>
@@ -379,6 +379,108 @@ function PartnersAdmin({ toast }) {
   </div>
 }
 
+// ── Hero Images Admin ────────────────────────────────────────────────────
+function HeroAdmin({ toast }) {
+  const [images, setImages] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const [urlInput, setUrlInput] = useState('')
+
+  const load = async () => {
+    const { data } = await supabase.from('hero_images').select('*').order('display_order')
+    setImages(data || [])
+    setLoading(false)
+  }
+
+  useEffect(() => { load() }, [])
+
+  const handleUpload = async (e) => {
+    const files = Array.from(e.target.files)
+    if (!files.length) return
+    setUploading(true)
+    for (const file of files) {
+      try {
+        const ext = file.name.split('.').pop()
+        const path = `hero/${Date.now()}.${ext}`
+        const { error } = await supabase.storage.from('wall-images').upload(path, file, { cacheControl: '3600', upsert: false })
+        if (error) throw error
+        const { data: { publicUrl } } = supabase.storage.from('wall-images').getPublicUrl(path)
+        await supabase.from('hero_images').insert({ image_url: publicUrl, storage_path: path, display_order: images.length, active: true })
+      } catch (err) { toast('Upload failed: ' + err.message) }
+    }
+    setUploading(false)
+    load()
+    toast('Image(s) added!')
+  }
+
+  const addUrl = async () => {
+    if (!urlInput.trim()) return
+    await supabase.from('hero_images').insert({ image_url: urlInput.trim(), display_order: images.length, active: true })
+    setUrlInput('')
+    load()
+    toast('Image added!')
+  }
+
+  const toggle = async (id, active) => {
+    await supabase.from('hero_images').update({ active: !active }).eq('id', id)
+    load()
+  }
+
+  const remove = async (id) => {
+    if (!confirm('Remove this hero image?')) return
+    await supabase.from('hero_images').delete().eq('id', id)
+    load()
+    toast('Image removed')
+  }
+
+  const moveUp = async (idx) => {
+    if (idx === 0) return
+    const a = images[idx], b = images[idx - 1]
+    await supabase.from('hero_images').update({ display_order: idx - 1 }).eq('id', a.id)
+    await supabase.from('hero_images').update({ display_order: idx }).eq('id', b.id)
+    load()
+  }
+
+  if (loading) return <Spinner />
+
+  return <div style={{maxWidth:800,margin:'0 auto',padding:'28px 24px'}}>
+    <h1 className="au" style={{fontFamily:'var(--fd)',fontSize:24,fontWeight:700,marginBottom:6}}>Hero Images</h1>
+    <p style={{fontSize:13,color:'var(--mu)',marginBottom:20}}>These images rotate on the homepage hero banner. Upload photos of impressive wall murals and campaigns.</p>
+
+    <Card style={{padding:20,marginBottom:20}}>
+      <h3 style={{fontSize:14,fontWeight:600,marginBottom:12}}>Add Images</h3>
+      <div style={{display:'flex',gap:10,flexWrap:'wrap',alignItems:'center'}}>
+        <label style={{display:'inline-flex',alignItems:'center',gap:8,padding:'10px 18px',background:'var(--wh)',border:'1.5px solid var(--ln)',borderRadius:10,cursor:'pointer',fontSize:13,fontWeight:600}}>
+          <span>{uploading ? 'Uploading...' : '📷 Upload Photos'}</span>
+          <input type="file" accept="image/*" multiple onChange={handleUpload} style={{display:'none'}} disabled={uploading}/>
+        </label>
+        <span style={{fontSize:12,color:'var(--mu)'}}>or</span>
+        <div style={{display:'flex',gap:6,flex:1,minWidth:200}}>
+          <input value={urlInput} onChange={e => setUrlInput(e.target.value)} placeholder="Paste image URL..." style={{flex:1,padding:'9px 12px',border:'1.5px solid var(--ln)',borderRadius:10,fontSize:13,outline:'none'}}/>
+          <Btn variant="secondary" onClick={addUrl} style={{whiteSpace:'nowrap'}}>Add URL</Btn>
+        </div>
+      </div>
+    </Card>
+
+    {images.length === 0 ? <Card style={{padding:36,textAlign:'center'}}><p style={{color:'var(--mu)'}}>No hero images yet. The homepage will use a gradient background until you add some.</p></Card>
+    : <div style={{display:'grid',gap:12}}>
+      {images.map((img, idx) => <Card key={img.id} style={{padding:14,display:'flex',gap:14,alignItems:'center',opacity:img.active ? 1 : 0.5}}>
+        <img src={img.image_url} alt="" style={{width:120,height:68,borderRadius:8,objectFit:'cover',flexShrink:0}}/>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontSize:13,fontWeight:600,marginBottom:2}}>Image {idx + 1}</div>
+          <div style={{fontSize:11,color:'var(--mu)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{img.image_url}</div>
+          <div style={{fontSize:11,color:img.active ? 'var(--gn)' : 'var(--mu)',marginTop:2}}>{img.active ? '● Active' : '○ Inactive'}</div>
+        </div>
+        <div style={{display:'flex',gap:4,flexShrink:0}}>
+          {idx > 0 && <button onClick={() => moveUp(idx)} style={{padding:'4px 8px',borderRadius:6,border:'1px solid var(--ln)',background:'var(--wh)',cursor:'pointer',fontSize:11}}>↑</button>}
+          <button onClick={() => toggle(img.id, img.active)} style={{padding:'4px 8px',borderRadius:6,border:'1px solid var(--ln)',background:'var(--wh)',cursor:'pointer',fontSize:11}}>{img.active ? 'Hide' : 'Show'}</button>
+          <button onClick={() => remove(img.id)} style={{padding:'4px 8px',borderRadius:6,border:'1px solid var(--ln)',background:'var(--wh)',cursor:'pointer',fontSize:11,color:'var(--rd)'}}>✕</button>
+        </div>
+      </Card>)}
+    </div>}
+  </div>
+}
+
 // ── Main Admin Dashboard ─────────────────────────────────────────────────
 export default function AdminDashboard({ session, logout, toast }) {
   return <div style={{minHeight:'100vh',background:'var(--bg)'}}>
@@ -388,6 +490,7 @@ export default function AdminDashboard({ session, logout, toast }) {
       <Route path="walls" element={<WallsAdmin toast={toast} />} />
       <Route path="enquiries" element={<EnquiriesAdmin toast={toast} />} />
       <Route path="partners" element={<PartnersAdmin toast={toast} />} />
+      <Route path="hero" element={<HeroAdmin toast={toast} />} />
     </Routes>
   </div>
 }
