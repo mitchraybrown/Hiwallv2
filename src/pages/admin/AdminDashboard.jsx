@@ -11,7 +11,7 @@ function AdminNav({ logout }) {
   const tabs = [{to:'/admin',l:'Overview',exact:true},{to:'/admin/walls',l:'Walls'},{to:'/admin/enquiries',l:'Enquiries'},{to:'/admin/partners',l:'Partners'},{to:'/admin/hero',l:'Hero'}]
   return <nav style={{background:'var(--ink)',padding:'0 16px',position:'sticky',top:0,zIndex:100}}>
     <div style={{maxWidth:1200,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',height:56,gap:8}}>
-      <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}><span style={{fontSize:18}}>👋</span><span style={{fontFamily:'var(--fd)',fontWeight:700,fontSize:15,color:'var(--co)'}}>Hi Wall</span><span style={{fontSize:9,fontWeight:600,padding:'2px 6px',borderRadius:5,background:'rgba(255,56,92,.2)',color:'var(--co)',textTransform:'uppercase'}}>Admin</span></div>
+      <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}><span className="mono" style={{fontSize:14,lineHeight:0.95,display:'flex',flexDirection:'column',letterSpacing:'0.06em',fontWeight:700}}><span>HI</span><span style={{color:'var(--co)'}}>WALL</span></span><span style={{fontSize:9,fontWeight:600,padding:'2px 6px',borderRadius:5,background:'rgba(255,56,92,.2)',color:'var(--co)',textTransform:'uppercase'}}>Admin</span></div>
       <div style={{display:'flex',gap:2,flexWrap:'wrap',justifyContent:'center',flex:1}}>
         {tabs.map(t => {
           const active = t.exact ? loc.pathname === t.to : loc.pathname.startsWith(t.to)
@@ -47,10 +47,10 @@ function Overview() {
   }, [])
   if (!stats) return <Spinner />
   return <div style={{maxWidth:960,margin:'0 auto',padding:'28px 24px'}}>
-    <h1 className="au" style={{fontFamily:'var(--fd)',fontSize:24,fontWeight:700,marginBottom:20}}>Dashboard</h1>
+    <h1 className="au" style={{fontSize:24,fontWeight:700,marginBottom:20}}>Dashboard</h1>
     <div className="au d1" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:10,marginBottom:24}}>
       {[{l:'Walls',v:stats.walls,c:'var(--ink)'},{l:'Pending',v:stats.pending,c:'var(--am)'},{l:'Approved',v:stats.approved,c:'var(--gn)'},{l:'Booked',v:stats.booked,c:'var(--bl)'},{l:'Enquiries',v:stats.enquiries,c:'var(--co)'},{l:'New',v:stats.newEnq,c:'var(--rd)'},{l:'Partners',v:stats.partners,c:'var(--sl)'}].map((s,i) =>
-        <Card key={i} style={{padding:14}}><div style={{fontSize:11,color:'var(--mu)',marginBottom:3}}>{s.l}</div><div style={{fontFamily:'var(--fd)',fontSize:22,fontWeight:700,color:s.c}}>{s.v}</div></Card>
+        <Card key={i} style={{padding:14}}><div style={{fontSize:11,color:'var(--mu)',marginBottom:3}}>{s.l}</div><div style={{fontSize:22,fontWeight:700,color:s.c}}>{s.v}</div></Card>
       )}
     </div>
     <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
@@ -80,7 +80,7 @@ function WallsAdmin({ toast }) {
 
   return <div style={{maxWidth:1000,margin:'0 auto',padding:'28px 24px'}}>
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:18}}>
-      <h1 style={{fontFamily:'var(--fd)',fontSize:24,fontWeight:700}}>Walls</h1>
+      <h1 style={{fontSize:24,fontWeight:700}}>Walls</h1>
       <Btn onClick={() => setEditing('new')}>+ Add Wall</Btn>
     </div>
     {walls.map(w => <Card key={w.id} style={{padding:'12px 16px',marginBottom:8,display:'flex',alignItems:'center',gap:12,cursor:'pointer'}} onClick={() => setEditing(w.id)}>
@@ -188,7 +188,7 @@ function WallForm({ id, toast, onDone }) {
 
   return <div style={{maxWidth:800,margin:'0 auto',padding:'28px 24px 52px'}}>
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
-      <h1 style={{fontFamily:'var(--fd)',fontSize:22,fontWeight:700}}>{isNew ? 'Add Wall' : 'Edit Wall'}</h1>
+      <h1 style={{fontSize:22,fontWeight:700}}>{isNew ? 'Add Wall' : 'Edit Wall'}</h1>
       <Btn variant="ghost" onClick={onDone}>← Back</Btn>
     </div>
 
@@ -328,7 +328,7 @@ function EnquiriesAdmin({ toast }) {
   if (loading) return <Spinner />
 
   return <div style={{maxWidth:960,margin:'0 auto',padding:'28px 24px'}}>
-    <h1 className="au" style={{fontFamily:'var(--fd)',fontSize:24,fontWeight:700,marginBottom:18}}>Enquiries</h1>
+    <h1 className="au" style={{fontSize:24,fontWeight:700,marginBottom:18}}>Enquiries</h1>
     {enquiries.length === 0 ? <Card style={{padding:36,textAlign:'center'}}><p style={{color:'var(--mu)'}}>No enquiries yet</p></Card>
     : enquiries.map(e => <Card key={e.id} style={{padding:'16px 20px',marginBottom:10}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
@@ -373,7 +373,7 @@ function PartnersAdmin({ toast }) {
   if (loading) return <Spinner />
 
   return <div style={{maxWidth:800,margin:'0 auto',padding:'28px 24px'}}>
-    <h1 className="au" style={{fontFamily:'var(--fd)',fontSize:24,fontWeight:700,marginBottom:18}}>Partners</h1>
+    <h1 className="au" style={{fontSize:24,fontWeight:700,marginBottom:18}}>Partners</h1>
     {partners.map(p => <Card key={p.id} style={{padding:'14px 18px',marginBottom:8,display:'flex',alignItems:'center',gap:12}}>
       <div style={{width:36,height:36,borderRadius:8,background:'var(--col)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:15}}>🤝</div>
       <div style={{flex:1}}>
@@ -453,7 +453,7 @@ function HeroAdmin({ toast }) {
   if (loading) return <Spinner />
 
   return <div style={{maxWidth:800,margin:'0 auto',padding:'28px 24px',overflow:'hidden'}}>
-    <h1 className="au" style={{fontFamily:'var(--fd)',fontSize:24,fontWeight:700,marginBottom:6}}>Hero Images</h1>
+    <h1 className="au" style={{fontSize:24,fontWeight:700,marginBottom:6}}>Hero Images</h1>
     <p style={{fontSize:13,color:'var(--mu)',marginBottom:20}}>These images rotate on the homepage hero banner. Upload photos of impressive wall murals and campaigns.</p>
 
     <Card style={{padding:20,marginBottom:20}}>

@@ -1,17 +1,28 @@
 import { Link } from 'react-router-dom'
 
 export default function Footer() {
-  return <footer style={{background:'var(--ink)',padding:'28px 24px 22px',marginTop:40}}>
-    <div style={{maxWidth:1200,margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
-      <div style={{display:'flex',alignItems:'center',gap:7}}>
-        <span style={{fontSize:18}}>👋</span>
-        <span style={{fontFamily:'var(--fd)',fontWeight:700,fontSize:16,color:'var(--co)'}}>Hi Wall</span>
-        <span style={{fontSize:12,color:'rgba(255,255,255,.35)'}}>© 2026</span>
+  return <footer style={{borderTop:'1px solid var(--ln)',padding:'36px 24px 28px',marginTop:48}}>
+    <div style={{maxWidth:1400,margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:20}}>
+      <div>
+        <div className="mono" style={{fontSize:20,lineHeight:0.95,display:'flex',flexDirection:'column',marginBottom:12,fontWeight:700,letterSpacing:'0.06em'}}>
+          <span style={{color:'var(--ink)'}}>HI</span>
+          <span style={{color:'var(--co)'}}>WALL</span>
+        </div>
+        <div className="mono" style={{fontSize:10,color:'var(--mu)'}}>Sydney's Wall Marketplace © 2026</div>
       </div>
-      <div style={{display:'flex',gap:14,alignItems:'center'}}>
-        <Link to="/about" style={{fontSize:12,color:'rgba(255,255,255,.4)',textDecoration:'none'}}>About</Link>
-        <Link to="/partners" style={{fontSize:12,color:'rgba(255,255,255,.4)',textDecoration:'none'}}>Partners</Link>
-        <Link to="/admin/login" style={{fontSize:12,color:'rgba(255,255,255,.25)',textDecoration:'none',fontStyle:'italic'}}>Admin</Link>
+      <div style={{display:'flex',gap:40}}>
+        <div>
+          <div className="mono" style={{fontSize:10,color:'var(--mu)',marginBottom:10}}>Marketplace</div>
+          {[{to:'/',l:'Browse Walls'},{to:'/list',l:'List a Wall'},{to:'/partners',l:'Partners'}].map((n,i)=>
+            <div key={i}><Link to={n.to} style={{fontSize:14,color:'var(--sl)',textDecoration:'none',lineHeight:2.2}}>{n.l}</Link></div>
+          )}
+        </div>
+        <div>
+          <div className="mono" style={{fontSize:10,color:'var(--mu)',marginBottom:10}}>Company</div>
+          {[{to:'/about',l:'About'},{to:'/admin/login',l:'Admin'}].map((n,i)=>
+            <div key={i}><Link to={n.to} style={{fontSize:14,color:'var(--sl)',textDecoration:'none',lineHeight:2.2}}>{n.l}</Link></div>
+          )}
+        </div>
       </div>
     </div>
   </footer>

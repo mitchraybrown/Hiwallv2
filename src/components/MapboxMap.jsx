@@ -87,7 +87,7 @@ export default function MapboxMap({ walls, onSelect, hoveredId, onHover }) {
 
       // Price pill
       const pill = document.createElement('div')
-      pill.style.cssText = `background:${isHovered ? '#1A1A2E' : booked ? '#2563EB' : '#FF385C'};color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:14px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.25);border:2px solid #fff;font-family:var(--f);`
+      pill.style.cssText = `background:${isHovered ? '#1a1a1a' : booked ? '#2563EB' : '#FF385C'};color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.2);border:2px solid #fff;font-family:var(--f);letter-spacing:-0.02em;`
       pill.textContent = price
       el.appendChild(pill)
 

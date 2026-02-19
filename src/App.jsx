@@ -35,7 +35,7 @@ export default function App() {
     navigate('/')
   }
 
-  if (loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',fontFamily:'var(--fd)',fontSize:20,color:'var(--mu)'}}>Loading...</div>
+  if (loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',fontSize:16,color:'var(--mu)',letterSpacing:'-0.01em'}}>Loading...</div>
 
   return (
     <>

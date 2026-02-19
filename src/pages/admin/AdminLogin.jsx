@@ -20,14 +20,14 @@ export default function AdminLogin({ toast }) {
     <div style={{flex:'1 1 340px',minWidth:280,background:'linear-gradient(135deg,#1A1A2E,#2D2B55,#3B2667)',padding:'60px 40px',display:'flex',flexDirection:'column',justifyContent:'center',position:'relative',overflow:'hidden'}}>
       <div style={{position:'absolute',top:-80,right:-80,width:300,height:300,borderRadius:'50%',background:'rgba(255,56,92,.08)',filter:'blur(60px)'}}/>
       <div style={{position:'relative',zIndex:1}}>
-        <div className="au" style={{display:'flex',alignItems:'center',gap:9,marginBottom:32}}><span style={{fontSize:30}}>👋</span><span style={{fontFamily:'var(--fd)',fontSize:24,fontWeight:700,color:'var(--co)'}}>Hi Wall Admin</span></div>
-        <h1 className="au d2" style={{fontFamily:'var(--fd)',fontSize:34,fontWeight:700,color:'#fff',lineHeight:1.12,marginBottom:14}}>Admin Control Panel</h1>
+        <div className="au" style={{display:'flex',alignItems:'center',gap:9,marginBottom:32}}><span className="mono" style={{fontSize:20,lineHeight:0.95,display:'flex',flexDirection:'column',letterSpacing:'0.06em',fontWeight:700}}><span style={{color:'#fff'}}>HI</span><span style={{color:'var(--co)'}}>WALL</span></span><span style={{fontSize:12,fontWeight:600,color:'rgba(255,255,255,.5)'}}>Admin</span></div>
+        <h1 className="au d2" style={{fontSize:34,fontWeight:700,color:'#fff',lineHeight:1.12,marginBottom:14}}>Admin Control Panel</h1>
         <p className="au d3" style={{fontSize:15,color:'rgba(255,255,255,.55)',lineHeight:1.7,maxWidth:340}}>Manage wall listings, enquiries, and the marketplace.</p>
       </div>
     </div>
     <div style={{flex:'1 1 340px',display:'flex',alignItems:'center',justifyContent:'center',padding:'36px 24px'}}>
       <div style={{maxWidth:370,width:'100%'}}>
-        <h2 className="au" style={{fontFamily:'var(--fd)',fontSize:22,fontWeight:700,marginBottom:4}}>Sign In</h2>
+        <h2 className="au" style={{fontSize:22,fontWeight:700,marginBottom:4}}>Sign In</h2>
         <p className="au d1" style={{color:'var(--mu)',fontSize:14,marginBottom:26}}>Admin access only</p>
         {error && <div style={{background:'var(--rb)',color:'var(--rt)',padding:'8px 12px',borderRadius:10,fontSize:12,marginBottom:12}}>{error}</div>}
         <Inp label="Email" required type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="admin@hiwall.com.au"/>

@@ -48,14 +48,14 @@ export default function PartnersPage({ toast }) {
   return <div style={{maxWidth:900,margin:'0 auto',padding:'32px 24px 52px'}}>
     <div className="au" style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:24}}>
       <div>
-        <h1 style={{fontFamily:'var(--fd)',fontSize:28,fontWeight:700,marginBottom:4}}>Verified Partners</h1>
+        <h1 style={{fontSize:28,fontWeight:700,marginBottom:4}}>Verified Partners</h1>
         <p style={{color:'var(--mu)',fontSize:14}}>Approved creative, production, and installation partners</p>
       </div>
       <Btn onClick={() => setShow(!show)}>{show ? 'Cancel' : '+ Become a Partner'}</Btn>
     </div>
 
     {show && <Card className="au" style={{padding:24,marginBottom:24}}>
-      <h3 style={{fontFamily:'var(--fd)',fontSize:18,fontWeight:700,marginBottom:4}}>Partner Application</h3>
+      <h3 style={{fontSize:18,fontWeight:700,marginBottom:4}}>Partner Application</h3>
       <p style={{fontSize:12,color:'var(--mu)',marginBottom:16}}>Tell us about your creative business. We'll review your application.</p>
       <div style={{maxWidth:480}}>
         <Inp label="Company Name" required value={f.company} onChange={e => setF({...f, company: e.target.value})} placeholder="Company"/>
@@ -113,7 +113,7 @@ export default function PartnersPage({ toast }) {
             {sel.logo_url?.startsWith('http') ? <img src={sel.logo_url} alt="" style={{width:52,height:52,borderRadius:12,objectFit:'cover'}}/> : (sel.logo_url || '🎨')}
           </div>
           <div>
-            <h3 style={{fontFamily:'var(--fd)',fontSize:20,fontWeight:700}}>{sel.company_name}</h3>
+            <h3 style={{fontSize:20,fontWeight:700}}>{sel.company_name}</h3>
             <div style={{fontSize:13,color:'var(--co)',fontWeight:600}}>Verified Partner</div>
           </div>
         </div>

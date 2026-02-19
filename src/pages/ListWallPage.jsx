@@ -135,14 +135,14 @@ export default function ListWallPage({ session, toast }) {
 
   if (done) return <div style={{maxWidth:520,margin:'80px auto',textAlign:'center',padding:36}}>
     <div style={{fontSize:52,marginBottom:16}}>🎉</div>
-    <h2 style={{fontFamily:'var(--fd)',fontSize:24,fontWeight:700,marginBottom:8}}>Wall Submitted!</h2>
+    <h2 style={{fontSize:24,fontWeight:700,marginBottom:8}}>Wall Submitted!</h2>
     <p style={{color:'var(--mu)',fontSize:14,marginBottom:20}}>Your wall is pending review. We'll verify it and update the status.</p>
     <Btn onClick={() => navigate('/')}>Browse Walls →</Btn>
   </div>
 
   return <div style={{maxWidth:820,margin:'0 auto',padding:'28px 24px 52px'}}>
     <div className="au" style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
-      <h1 style={{fontFamily:'var(--fd)',fontSize:22,fontWeight:700}}>List Your Wall</h1>
+      <h1 style={{fontSize:22,fontWeight:700}}>List Your Wall</h1>
       <Btn variant="ghost" onClick={() => navigate('/')}>← Back</Btn>
     </div>
     <p style={{fontSize:13,color:'var(--mu)',marginBottom:20}}>Step {step + 1} of {totalSteps} — {stepLabel}</p>
@@ -228,7 +228,7 @@ export default function ListWallPage({ session, toast }) {
           <Card style={{padding:20,marginBottom:14}}>
             <div style={{padding:'18px 20px',background:'var(--gb)',borderRadius:12,border:'1px solid var(--gn)',marginBottom:14}}>
               <div style={{fontSize:11,color:'var(--gt)',fontWeight:600,marginBottom:2}}>Your Estimated Earnings</div>
-              <div style={{fontFamily:'var(--fd)',fontSize:28,fontWeight:700,color:'var(--gt)'}}>{sug ? fmt(sug.ownerTotal) : '—'}</div>
+              <div style={{fontSize:22,fontWeight:700,color:'var(--gt)',fontFamily:'var(--fm)'}}>{sug ? fmt(sug.ownerTotal) : '—'}</div>
               <div style={{fontSize:13,color:'var(--gt)',marginTop:2}}>{sug ? fmt(sug.ownerMonthly) : '—'}/mo for {f.duration} months</div>
             </div>
           </Card>
@@ -281,7 +281,7 @@ export default function ListWallPage({ session, toast }) {
       {/* Pricing sidebar on review step */}
       {step === 2 && <div className="au d3" style={{position:'sticky',top:74}}>
         <Card style={{padding:18}}>
-          <h4 style={{fontFamily:'var(--fd)',fontSize:16,fontWeight:700,marginBottom:10}}>Wall Summary</h4>
+          <h4 style={{fontSize:16,fontWeight:700,marginBottom:10}}>Wall Summary</h4>
           <div style={{fontSize:13,marginBottom:6}}><strong>{f.title || 'Untitled'}</strong></div>
           <div style={{fontSize:12,color:'var(--mu)',marginBottom:10}}>{f.neighborhood} • {sqm}sqm • {f.duration}mo</div>
           {sug && <>

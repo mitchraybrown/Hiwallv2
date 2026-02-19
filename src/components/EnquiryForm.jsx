@@ -52,7 +52,7 @@ export default function EnquiryForm({ wall, onClose, toast }) {
   return <Overlay onClose={onClose}>
     <Card style={{maxWidth:520,width:'95vw'}}>
       <div style={{padding:22}}>
-        <h2 style={{fontFamily:'var(--fd)',fontSize:19,fontWeight:700,marginBottom:4}}>{booked ? 'Express Interest' : 'Enquire About This Wall'}</h2>
+        <h2 style={{fontSize:19,fontWeight:700,marginBottom:4}}>{booked ? 'Express Interest' : 'Enquire About This Wall'}</h2>
         <p style={{color:'var(--mu)',fontSize:13,marginBottom:2}}>for <strong>{wall.title}</strong> — {fmt(wall.price_total)}/{wall.duration_months}mo</p>
         {booked && <p style={{fontSize:12,color:'var(--bl)',marginBottom:10}}>This wall is booked until {wall.booked_until}. Submit interest for when available.</p>}
         <div style={{marginTop:12}}/>
